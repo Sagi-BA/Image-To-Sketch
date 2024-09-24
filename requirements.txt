@@ -2,7 +2,5 @@ streamlit
 pillow 
 numpy
 asyncio
+python-dotenv
 opencv-python-headless
-
-
-
