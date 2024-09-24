@@ -3,4 +3,5 @@ pillow
 numpy
 asyncio
 python-dotenv
+aiohttp #This is for telegram
 opencv-python-headless
