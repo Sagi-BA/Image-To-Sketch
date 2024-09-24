@@ -1,0 +1,7 @@
+*.code-workspace
+.env
+.venv
+# Ignore all __pycache__ directories
+**/__pycache__/
+data/user_count.json
+
