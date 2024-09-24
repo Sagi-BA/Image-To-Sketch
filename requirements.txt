@@ -1,8 +1,8 @@
 streamlit 
-opencv-python 
 pillow 
 numpy
 asyncio
+opencv-python==4.5.5.64
 
 
 

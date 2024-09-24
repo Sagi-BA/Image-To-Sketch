@@ -1,10 +1,10 @@
 ![Alt text](https://i.imgur.com/haRDiHy.jpeg)
 
-# 🎨 AI Image Generator
+# 🎨 Image to Sketch Converter
 
-This application allows users to create images using artificial intelligence by selecting different models and image styles.
+This application allows users to convert their images into artistic sketches using advanced image processing techniques.
 
-> You can try the app [here](https://sagi-ai-image-model-comparision.streamlit.app/)
+> You can try the app [here](https://sagi-image-to-sketch.streamlit.app/)
 
 [![Linktree](https://img.shields.io/badge/linktree-white?style=for-the-badge&logo=linktree&logoColor=43E55E)](https://linktr.ee/sagib?lt_utm_source=lt_share_link#373198503) |
 [![Facebook](https://img.shields.io/badge/facebook-white?style=for-the-badge&logo=facebook&logoColor=0866FF)](https://www.facebook.com/sagi.baron) |
@@ -19,15 +19,16 @@ This application allows users to create images using artificial intelligence by 
 
 ## Watch the video tutorial
 
-[![Watch the video](https://img.youtube.com/vi/xj8COkST--8/maxresdefault.jpg)](https://youtu.be/xj8COkST--8)
+[![Watch the video](https://img.youtube.com/vi/VIDEO_ID/maxresdefault.jpg)](https://youtu.be/VIDEO_ID)
 
 ## Key Features
 
-- Create images using various AI models
-- Choose from different image styles
-- Option to input custom prompts
-- Compare results from different models
-- Support for both English and Hebrew languages
+- Convert uploaded images to artistic sketches
+- Easy-to-use interface with drag-and-drop functionality
+- View original image and sketch side by side
+- Download the generated sketch
+- Support for various image formats (JPG, JPEG, PNG)
+- Responsive design for both desktop and mobile use
 
 ## Installing Dependencies
 
@@ -40,11 +41,10 @@ pip install -r requirements.txt
 
 ## Usage
 
-1. Enter a prompt: Write a description of the image you want to create.
-2. Select models: Choose the AI models you want to use to generate the image.
-3. Choose a style: Select the desired image style (available styles depend on the selected models).
-4. Generate images: Click the 'Generate' button to create the images.
-5. Compare results: View the images created by different models and compare them.
+1. Upload an image: Use the file uploader to select an image from your device.
+2. View results: See your original image and the generated sketch side by side.
+3. Download sketch: Use the download button to save the generated sketch to your device.
+4. Try different images: Upload various images to see how they look as sketches.
 
 Make sure you have [Streamlit installed](https://docs.streamlit.io/) before running the application.
 Run the following command in your terminal:
@@ -55,8 +55,8 @@ streamlit run main.py
 
 ## Additional Notes
 
-- The application supports several different AI models for image creation, including Flux, Stable Diffusion, and more.
-- You can use prompts in English or Hebrew.
-- Results may vary between different models, allowing for interesting comparisons of their capabilities.
+- The application uses advanced image processing techniques to convert images to sketches.
+- The quality of the sketch may vary depending on the complexity and clarity of the original image.
+- This tool is great for artists, designers, or anyone looking to create unique sketched versions of their photos.
 
 We welcome feedback and ideas for improving the application!
