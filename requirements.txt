@@ -1,7 +1,10 @@
-streamlit 
-pillow 
-numpy
-asyncio
+# Specify the exact version of opencv-python-headless
+opencv-python-headless==4.7.0.72
+
+# Other dependencies
+streamlit==1.22.0
+numpy==1.24.3
+Pillow==9.5.0
 
 
 
