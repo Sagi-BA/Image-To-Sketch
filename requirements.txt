@@ -1,5 +1,8 @@
 streamlit 
 opencv-python 
-pillow numpy
+pillow 
+numpy
 asyncio
+
+
 
