@@ -1,4 +1,5 @@
 streamlit 
+streamlit-drawable-canvas
 pillow 
 numpy
 asyncio
