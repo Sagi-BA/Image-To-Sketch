@@ -6,3 +6,4 @@ asyncio
 python-dotenv
 aiohttp #This is for telegram
 opencv-python-headless
+deep_translator #this is for GoogleTranslator

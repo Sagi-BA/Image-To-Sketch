@@ -1,3 +1,4 @@
+import requests
 import asyncio
 import base64
 import os
@@ -6,10 +7,12 @@ import cv2
 import numpy as np
 from PIL import Image
 import io
+from deep_translator import GoogleTranslator
 from utils.BatchSketchApp import ImageToSketchProcessor
 import uuid
 
 # Initialize components
+from utils.image_captioning import ImageCaptioning
 from utils.init import initialize
 from utils.counter import initialize_user_count, increment_user_count, get_user_count
 from utils.TelegramSender import TelegramSender
@@ -71,6 +74,15 @@ def resize_image(image, max_width=800):
     h_size = int(float(image.size[1]) * float(w_percent))
     return image.resize((max_width, h_size), Image.LANCZOS)
 
+@st.cache_resource
+def translate_to_hebrew(text):
+    try:        
+        translator = GoogleTranslator(source='auto', target='iw')
+        return translator.translate(text)
+    except Exception as e:
+        st.error(f"שגיאה בתרגום: {str(e)}")
+        return text
+            
 async def main():
     title, image_path, footer_content = initialize()
     st.title("המרת תמונות לסקיצות אמנותיות")
@@ -118,6 +130,14 @@ async def main():
             with col2:
                 st.image(sketch_resized, caption="הסקיצה", use_column_width=True)
             
+            # Create an instance of the ImageCaptioning class
+            captioning = ImageCaptioning()
+            
+            # Get the generated caption
+            english_captioningt = captioning.get_image_captioning(sketch_image)
+            hebrew_captioningt = translate_to_hebrew(english_captioningt)
+            st.success(hebrew_captioningt)
+
             # col1, col2 = st.columns(2)
             # with col1:
             #     # Convert image to base64
