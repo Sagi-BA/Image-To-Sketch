@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import os
 import streamlit as st
 import cv2
@@ -6,6 +7,7 @@ import numpy as np
 from PIL import Image
 import io
 from utils.BatchSketchApp import ImageToSketchProcessor
+import uuid
 
 # Initialize components
 from utils.init import initialize
@@ -21,7 +23,7 @@ if 'state' not in st.session_state:
 
 # Set page config for better mobile responsiveness
 # Set page config at the very beginning
-st.set_page_config(layout="wide", initial_sidebar_state="collapsed", page_title="מחולל תמונות AI", page_icon="📷")
+st.set_page_config(layout="wide", initial_sidebar_state="collapsed", page_title="המרה של תמונות לסקיצות אמנותיות", page_icon="🖼️")
 
 async def send_telegram_message_and_file(message, file_content: io.BytesIO):
     sender = TelegramSender()
@@ -71,7 +73,7 @@ def resize_image(image, max_width=800):
 
 async def main():
     title, image_path, footer_content = initialize()
-    st.title("המרה של תמונות לסקיצות אמנותיות")
+    st.title("המרת תמונות לסקיצות אמנותיות")
 
     # Load and display the custom expander HTML
     expander_html = load_html_file('expander.html')
@@ -116,15 +118,46 @@ async def main():
             with col2:
                 st.image(sketch_resized, caption="הסקיצה", use_column_width=True)
             
+            # col1, col2 = st.columns(2)
+            # with col1:
+            #     # Convert image to base64
+            #     buffered = io.BytesIO()
+            #     image_resized.save(buffered, format="PNG")
+            #     img_base64 = base64.b64encode(buffered.getvalue()).decode()
+                
+            #     # Create a downloadable link to open in new tab
+            #     st.markdown(f'<a href="data:image/png;base64,{img_base64}" download="original_image.png" target="_blank"><img src="data:image/png;base64,{img_base64}" style="width: 100%;" alt="התמונה המקורית"/></a>', unsafe_allow_html=True)
+
+            # with col2:
+            #     # Convert sketch to base64
+            #     buffered = io.BytesIO()
+            #     sketch_resized.save(buffered, format="PNG")
+            #     sketch_base64 = base64.b64encode(buffered.getvalue()).decode()
+                
+            #     # Create a downloadable link to open in new tab
+            #     st.markdown(f'<a href="data:image/png;base64,{sketch_base64}" download="sketch_image.png" target="_blank"><img src="data:image/png;base64,{sketch_base64}" style="width: 100%;" alt="הסקיצה"/></a>', unsafe_allow_html=True)
+
             # Add download button for sketch
             buffered = io.BytesIO()
             sketch_image.save(buffered, format="PNG")
-            st.download_button(
-                label="הורד סקיצה",
-                data=buffered.getvalue(),
-                file_name="sketch.png",
-                mime="image/png"
-            )
+            # Generate a unique image name
+            unique_filename = f"sketch_{uuid.uuid4().hex}.png"
+
+            # Convert image to base64 string
+            buffered.seek(0)
+            image_base64 = base64.b64encode(buffered.getvalue()).decode()
+            
+            # Update the st.markdown with the corrected href
+            # Update the st.markdown with custom CSS to center the download link on the image
+            st.markdown(f"""
+             <div class="gallery-container">
+                <div class="image-container">
+                    <a href="data:image/png;base64,{image_base64}" download="{unique_filename}" class="centered-link">
+                        הורדת סקיצה
+                    </a>
+                </div>                
+            </div>
+        """, unsafe_allow_html=True)
             
             # Send message to Telegram            
             await send_telegram_message_and_file("סקיצה של תמונה", image, sketch_image)

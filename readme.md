@@ -1,4 +1,4 @@
-![Alt text](https://i.imgur.com/haRDiHy.jpeg)
+![Alt text](https://i.imgur.com/e7bsSxA.jpeg)
 
 # 🎨 Image to Sketch Converter
 

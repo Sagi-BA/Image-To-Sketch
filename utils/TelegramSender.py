@@ -42,40 +42,31 @@ class TelegramSender:
             return True
         return False
 
-    async def send_message(self, text: str, title: Optional[str] = None) -> None:
-        params = {
-            "chat_id": self.chat_id,
-            "text": text,
-            "parse_mode": "HTML"
-        }
-        if title:
-            params["text"] = f"<b>{title}</b>\n\n{text}"
+    async def send_images(self, original_image: BytesIO, sketch_image: BytesIO, caption_original: Optional[str] = None, caption_sketch: Optional[str] = None) -> None:
+        data_original = aiohttp.FormData()
+        data_sketch = aiohttp.FormData()
         
-        result = await self._make_request('post', 'sendMessage', params=params)
-        if result:
-            print("Message sent successfully")
+        # Prepare original image
+        data_original.add_field("chat_id", self.chat_id)
+        data_original.add_field("photo", original_image, filename="original_image.png", content_type="image/png")
+        if caption_original:
+            data_original.add_field("caption", caption_original)
 
-    async def send_image_and_text(self, image_path: str, caption: Optional[str] = None) -> None:
-        data = aiohttp.FormData()
-        data.add_field("chat_id", self.chat_id)
-        data.add_field("photo", open(image_path, "rb"))
-        if caption:
-            data.add_field("caption", caption)
+        # Send original image
+        result_original = await self._make_request('post', 'sendPhoto', data=data_original)
+        if result_original:
+            print("Original image sent successfully")
 
-        result = await self._make_request('post', 'sendPhoto', data=data)
-        if result:
-            print("Image sent successfully")
+        # Prepare sketch image
+        data_sketch.add_field("chat_id", self.chat_id)
+        data_sketch.add_field("photo", sketch_image, filename="sketch_image.png", content_type="image/png")
+        if caption_sketch:
+            data_sketch.add_field("caption", caption_sketch)
 
-    async def send_document(self, document: BytesIO, caption: Optional[str] = None) -> None:
-        data = aiohttp.FormData()
-        data.add_field("chat_id", self.chat_id)
-        data.add_field("document", document, filename="comparison_results.html", content_type="text/html")
-        if caption:
-            data.add_field("caption", caption)
-
-        result = await self._make_request('post', 'sendDocument', data=data)
-        if result:
-            print("Document sent successfully")
+        # Send sketch image
+        result_sketch = await self._make_request('post', 'sendPhoto', data=data_sketch)
+        if result_sketch:
+            print("Sketch image sent successfully")
 
     async def sketch_image(self, original_image: Image.Image, sketch_image: Image.Image, caption: Optional[str] = None) -> None:
         # Create a new image with both original and sketch side by side
@@ -104,6 +95,7 @@ class TelegramSender:
         result = await self._make_request('post', 'sendPhoto', data=data)
         if result:
             print("Combined image sent successfully")
+
 
 # Example usage
 async def main():
