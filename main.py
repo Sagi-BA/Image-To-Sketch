@@ -82,7 +82,13 @@ def translate_to_hebrew(text):
     except Exception as e:
         st.error(f"שגיאה בתרגום: {str(e)}")
         return text
-            
+
+# Force a refresh by clearing and reassigning the video URL
+def load_video(video_url, placeholder):
+    placeholder.empty()  # Clear the placeholder
+    time.sleep(2)  # Small delay to ensure the placeholder is cleared
+    placeholder.video(video_url, autoplay=True, loop=True)
+
 async def main():
     title, image_path, footer_content = initialize()
     st.title("המרת תמונות לסקיצות אמנותיות")
@@ -154,10 +160,8 @@ async def main():
             
             with st.spinner('יוצר את הוידאו זה ייקח כ 2 שניות...'):
                 print(video_url)
-                time.sleep(2)  # Wait 2 seconds
-                video_placeholder.empty()  # Clear the success alert
-                # Display the video as bytes
-                video_placeholder.video(video_url, autoplay=True, loop=True)
+
+                load_video(video_url, video_placeholder)
         
             # Add download button for sketch
             buffered = io.BytesIO()
