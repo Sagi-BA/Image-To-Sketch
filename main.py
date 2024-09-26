@@ -134,9 +134,9 @@ async def main():
             captioning = ImageCaptioning()
             
             # Get the generated caption
-            english_captioningt = captioning.get_image_captioning(sketch_image)
-            hebrew_captioningt = translate_to_hebrew(english_captioningt)
-            st.success(hebrew_captioningt)
+            english_captioning = captioning.get_image_captioning(sketch_image)
+            hebrew_captioning = translate_to_hebrew(english_captioning)
+            st.success(hebrew_captioning)
 
             # col1, col2 = st.columns(2)
             # with col1:
@@ -180,7 +180,7 @@ async def main():
         """, unsafe_allow_html=True)
             
             # Send message to Telegram            
-            await send_telegram_message_and_file("סקיצה של תמונה", image, sketch_image)
+            await send_telegram_message_and_file(hebrew_captioning, image, sketch_image)
             
         except Exception as e:
             st.error(f"אירעה שגיאה בעיבוד התמונה: {str(e)}")
