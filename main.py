@@ -1,18 +1,20 @@
-import requests
+import time
+import streamlit as st
+from PIL import Image
+import io
+import numpy as np
+import cv2
 import asyncio
 import base64
 import os
-import streamlit as st
-import cv2
-import numpy as np
-from PIL import Image
-import io
-from deep_translator import GoogleTranslator
-from utils.BatchSketchApp import ImageToSketchProcessor
 import uuid
 
 # Initialize components
+from utils.BatchSketchApp import ImageToSketchProcessor
+from utils.ImageTransitionAnimator import ImageTransitionAnimator
 from utils.image_captioning import ImageCaptioning
+from deep_translator import GoogleTranslator
+from utils.imgur_uploader import ImgurUploader
 from utils.init import initialize
 from utils.counter import initialize_user_count, increment_user_count, get_user_count
 from utils.TelegramSender import TelegramSender
@@ -28,16 +30,26 @@ if 'state' not in st.session_state:
 # Set page config at the very beginning
 st.set_page_config(layout="wide", initial_sidebar_state="collapsed", page_title="המרה של תמונות לסקיצות אמנותיות", page_icon="🖼️")
 
-async def send_telegram_message_and_file(message, file_content: io.BytesIO):
+def image_to_bytes(image: Image.Image) -> io.BytesIO:
+    img_byte_arr = io.BytesIO()
+    image.save(img_byte_arr, format='PNG')
+    img_byte_arr.seek(0)
+    return img_byte_arr
+
+async def send_telegram_message_and_file(message, original_image, sketch_image, video_base64):
     sender = TelegramSender()
     try:
-        # Verify bot token
+        # Convert the base64 video into BytesIO
+        video_bytes = base64.b64decode(video_base64)
+        video_buffer = io.BytesIO(video_bytes)
+        
+        # Verify the bot token
         if await sender.verify_bot_token():
-            # Reset the file pointer to the beginning
-            # file_content.seek(0)
+            # First send the original and sketch images
+            await sender.sketch_image(original_image, sketch_image, caption=message)
             
-            # Modify the send_document method to accept BytesIO
-            await sender.send_document(file_content, caption=message)
+            # Then send the video as a file
+            await sender.send_video(video_buffer, caption=message)
         else:
             raise Exception("Bot token verification failed")
     except Exception as e:
@@ -55,18 +67,6 @@ def load_footer():
         with open(footer_path, 'r', encoding='utf-8') as footer_file:
             return footer_file.read()
     return None  # Return None if the file doesn't exist
-
-async def send_telegram_message_and_file(message, original_image, sketch_image):
-    sender = TelegramSender()
-    try:
-        if await sender.verify_bot_token():
-            await sender.sketch_image(original_image, sketch_image, caption=message)
-        else:
-            raise Exception("Bot token verification failed")
-    except Exception as e:
-        raise Exception(f"Failed to send Telegram message: {str(e)}")
-    finally:
-        await sender.close_session()
 
 def resize_image(image, max_width=800):
     """Resize image to fit within max_width while maintaining aspect ratio"""
@@ -102,7 +102,7 @@ async def main():
                 st.error("הקובץ שהועלה ריק. אנא נסה קובץ אחר.")
                 return
             
-            # Open image with PIL
+             # Open the image            
             image = Image.open(io.BytesIO(file_bytes))
             
             # Convert to OpenCV format
@@ -113,50 +113,52 @@ async def main():
                 st.error("נכשל בפענוח התמונה עם OpenCV. ייתכן שהקובץ פגום או בפורמט שאינו נתמך.")
                 return
             
-            # Convert to sketch
-            sketch = ImageToSketchProcessor.convert_to_sketch(opencv_image)
-            
-            # Convert sketch back to PIL Image
-            sketch_image = Image.fromarray(sketch)
-            
-            # Resize images
-            image_resized = resize_image(image)
-            sketch_resized = resize_image(sketch_image)
-            
-            # Display images side by side
+            # Placeholder for caption
+            caption_placeholder = st.empty()
+
+            with st.spinner('מתאר את תוכן התמונה...'):
+                captioning = ImageCaptioning()
+                english_captioning = captioning.get_image_captioning(image)
+                hebrew_captioning = translate_to_hebrew(english_captioning)
+                caption_placeholder.success(hebrew_captioning)
+
+            # Placeholder for images
             col1, col2 = st.columns(2)
             with col1:
-                st.image(image_resized, caption="התמונה המקורית", use_column_width=True)
+                original_image_placeholder = st.empty()
             with col2:
-                st.image(sketch_resized, caption="הסקיצה", use_column_width=True)
+                sketch_image_placeholder = st.empty()
             
-            # Create an instance of the ImageCaptioning class
-            captioning = ImageCaptioning()
+            # Resize and display original image            
+            image_resized = resize_image(image)
+            original_image_placeholder.image(image_resized, caption="התמונה המקורית", use_column_width=True)
             
-            # Get the generated caption
-            english_captioning = captioning.get_image_captioning(image)
-            hebrew_captioning = translate_to_hebrew(english_captioning)
-            st.success(hebrew_captioning)
-
-            # col1, col2 = st.columns(2)
-            # with col1:
-            #     # Convert image to base64
-            #     buffered = io.BytesIO()
-            #     image_resized.save(buffered, format="PNG")
-            #     img_base64 = base64.b64encode(buffered.getvalue()).decode()
-                
-            #     # Create a downloadable link to open in new tab
-            #     st.markdown(f'<a href="data:image/png;base64,{img_base64}" download="original_image.png" target="_blank"><img src="data:image/png;base64,{img_base64}" style="width: 100%;" alt="התמונה המקורית"/></a>', unsafe_allow_html=True)
-
-            # with col2:
-            #     # Convert sketch to base64
-            #     buffered = io.BytesIO()
-            #     sketch_resized.save(buffered, format="PNG")
-            #     sketch_base64 = base64.b64encode(buffered.getvalue()).decode()
-                
-            #     # Create a downloadable link to open in new tab
-            #     st.markdown(f'<a href="data:image/png;base64,{sketch_base64}" download="sketch_image.png" target="_blank"><img src="data:image/png;base64,{sketch_base64}" style="width: 100%;" alt="הסקיצה"/></a>', unsafe_allow_html=True)
-
+            # Convert to sketch
+            sketch = ImageToSketchProcessor.convert_to_sketch(opencv_image)
+            sketch_image = Image.fromarray(sketch)
+            sketch_resized = resize_image(sketch_image)
+            sketch_image_placeholder.image(sketch_resized, caption="הסקיצה", use_column_width=True)
+            
+            # Placeholder for VIDEO
+            video_placeholder = st.empty()
+            
+            # Create the transition animation mp4 file
+            with st.spinner('מייצר אנימציה...'):
+                animator = ImageTransitionAnimator(sketch_image=sketch_resized, color_image=image_resized)
+                frames = animator.create_transition_frames()
+                video_base64 = animator.create_video_in_memory(frames)
+        
+            with st.spinner('מחבר את הכיתוב לתמונה...'):
+                uploader = ImgurUploader()                
+                video_url = uploader.upload_media_to_imgur(video_base64, "video", english_captioning, hebrew_captioning)                
+            
+            with st.spinner('יוצר את הוידאו זה ייקח כ 2 שניות...'):
+                print(video_url)
+                time.sleep(2)  # Wait 2 seconds
+                video_placeholder.empty()  # Clear the success alert
+                # Display the video as bytes
+                video_placeholder.video(video_url, autoplay=True, loop=True)
+        
             # Add download button for sketch
             buffered = io.BytesIO()
             sketch_image.save(buffered, format="PNG")
@@ -174,14 +176,17 @@ async def main():
                 <div class="image-container">
                     <a href="data:image/png;base64,{image_base64}" download="{unique_filename}" class="centered-link">
                         הורדת סקיצה
+                    </a>&nbsp;
+                    <a href="data:video/mp4;base64,{video_base64}" download="{video_url}" class="centered-link">
+                        הורדת וידאו
                     </a>
                 </div>                
             </div>
         """, unsafe_allow_html=True)
             
-            # Send message to Telegram            
-            await send_telegram_message_and_file(hebrew_captioning, image, sketch_image)
-            
+            # Send message to Telegram       
+            await send_telegram_message_and_file(hebrew_captioning, image, sketch_image, video_base64)
+                  
         except Exception as e:
             st.error(f"אירעה שגיאה בעיבוד התמונה: {str(e)}")
             st.error("אנא נסה להעלות תמונה אחרת או בדוק אם הקובץ פגום.")

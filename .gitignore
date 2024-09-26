@@ -5,3 +5,6 @@
 **/__pycache__/
 # data/user_count.json
 
+color_image.jpg
+sketch_image.jpg
+utils/ImageTransitionAnimator_to_image.py

@@ -42,31 +42,29 @@ class TelegramSender:
             return True
         return False
 
-    async def send_images(self, original_image: BytesIO, sketch_image: BytesIO, caption_original: Optional[str] = None, caption_sketch: Optional[str] = None) -> None:
-        data_original = aiohttp.FormData()
-        data_sketch = aiohttp.FormData()
-        
-        # Prepare original image
-        data_original.add_field("chat_id", self.chat_id)
-        data_original.add_field("photo", original_image, filename="original_image.png", content_type="image/png")
-        if caption_original:
-            data_original.add_field("caption", caption_original)
+    async def send_message(self, message: str) -> None:
+        data = aiohttp.FormData()
+        data.add_field("chat_id", self.chat_id)
+        data.add_field("text", message)
 
-        # Send original image
-        result_original = await self._make_request('post', 'sendPhoto', data=data_original)
-        if result_original:
-            print("Original image sent successfully")
+        # Send the message
+        result = await self._make_request('post', 'sendMessage', data=data)
+        if result:
+            print("Message sent successfully")
 
-        # Prepare sketch image
-        data_sketch.add_field("chat_id", self.chat_id)
-        data_sketch.add_field("photo", sketch_image, filename="sketch_image.png", content_type="image/png")
-        if caption_sketch:
-            data_sketch.add_field("caption", caption_sketch)
+    async def send_video(self, video_buffer: BytesIO, caption: Optional[str] = None) -> None:
+        data_video = aiohttp.FormData()
 
-        # Send sketch image
-        result_sketch = await self._make_request('post', 'sendPhoto', data=data_sketch)
-        if result_sketch:
-            print("Sketch image sent successfully")
+        # Add video file
+        data_video.add_field("chat_id", self.chat_id)
+        data_video.add_field("video", video_buffer, filename="animation.mp4", content_type="video/mp4")
+        if caption:
+            data_video.add_field("caption", caption)
+
+        # Send video
+        result_video = await self._make_request('post', 'sendVideo', data=data_video)
+        if result_video:
+            print("Video sent successfully")
 
     async def sketch_image(self, original_image: Image.Image, sketch_image: Image.Image, caption: Optional[str] = None) -> None:
         # Create a new image with both original and sketch side by side
@@ -92,10 +90,24 @@ class TelegramSender:
         if caption:
             data.add_field("caption", caption)
 
+        data.add_field("link", "https://i.imgur.com/6vGORzZ.mp4")
         result = await self._make_request('post', 'sendPhoto', data=data)
         if result:
             print("Combined image sent successfully")
 
+    async def send_video(self, video_buffer: BytesIO, caption: Optional[str] = None) -> None:
+        data_video = aiohttp.FormData()
+
+        # Add video file
+        data_video.add_field("chat_id", self.chat_id)
+        data_video.add_field("video", video_buffer, filename="animation.mp4", content_type="video/mp4")
+        if caption:
+            data_video.add_field("caption", caption)
+
+        # Send video
+        result_video = await self._make_request('post', 'sendVideo', data=data_video)
+        if result_video:
+            print("Video sent successfully")
 
 # Example usage
 async def main():
