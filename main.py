@@ -134,7 +134,7 @@ async def main():
             captioning = ImageCaptioning()
             
             # Get the generated caption
-            english_captioning = captioning.get_image_captioning(sketch_image)
+            english_captioning = captioning.get_image_captioning(image)
             hebrew_captioning = translate_to_hebrew(english_captioning)
             st.success(hebrew_captioning)
 
