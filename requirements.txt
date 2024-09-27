@@ -7,3 +7,5 @@ python-dotenv
 aiohttp #This is for telegram
 opencv-python-headless
 deep_translator #this is for GoogleTranslator
+moviepy #for the animation images
+imageio #for the animation images

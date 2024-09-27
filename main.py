@@ -18,6 +18,7 @@ from utils.imgur_uploader import ImgurUploader
 from utils.init import initialize
 from utils.counter import initialize_user_count, increment_user_count, get_user_count
 from utils.TelegramSender import TelegramSender
+from utils.image_effects import ImageEffects
 
 # Initialize session state
 if 'state' not in st.session_state:
@@ -36,24 +37,23 @@ def image_to_bytes(image: Image.Image) -> io.BytesIO:
     img_byte_arr.seek(0)
     return img_byte_arr
 
-async def send_telegram_message_and_file(message, original_image, sketch_image, video_base64):
+async def send_telegram_message_and_file(message, original_image, sketch_image, video_base64=None):
     sender = TelegramSender()
     try:
-        # Convert the base64 video into BytesIO
-        video_bytes = base64.b64decode(video_base64)
-        video_buffer = io.BytesIO(video_bytes)
-        
         # Verify the bot token
         if await sender.verify_bot_token():
-            # First send the original and sketch images
+            # Send the original and sketch images
             await sender.sketch_image(original_image, sketch_image, caption=message)
             
-            # Then send the video as a file
-            await sender.send_video(video_buffer, caption=message)
+            # If video_base64 is provided, send the video as well
+            if video_base64:
+                video_bytes = base64.b64decode(video_base64)
+                video_buffer = io.BytesIO(video_bytes)
+                await sender.send_video(video_buffer, caption=message)
         else:
             raise Exception("Bot token verification failed")
     except Exception as e:
-        raise Exception(f"Failed to send Telegram message: {str(e)}")
+        st.error(f"Failed to send Telegram message: {str(e)}")
     finally:
         await sender.close_session()
 
@@ -97,21 +97,30 @@ async def main():
     expander_html = load_html_file('expander.html')
     st.markdown(expander_html, unsafe_allow_html=True)  
     
+    # Initialize session state for tracking Telegram message sent
+    if 'telegram_message_sent' not in st.session_state:
+        st.session_state.telegram_message_sent = False
+    
+    if 'last_uploaded_file' not in st.session_state:
+        st.session_state.last_uploaded_file = None
+
     uploaded_file = st.file_uploader("בחרו תמונה...", type=["jpg", "jpeg", "png", "webp"])    
     
+    # Reset telegram_message_sent if a new file is uploaded
+    if uploaded_file is not None and uploaded_file != st.session_state.last_uploaded_file:
+        st.session_state.telegram_message_sent = False
+        st.session_state.last_uploaded_file = uploaded_file
+
     if uploaded_file is not None:
         try:
-            # Read file as bytes
+            # שלב 1: הצגת התמונה המקורית והסקיצה
             file_bytes = uploaded_file.read()
             
             if len(file_bytes) == 0:
                 st.error("הקובץ שהועלה ריק. אנא נסה קובץ אחר.")
                 return
             
-             # Open the image            
             image = Image.open(io.BytesIO(file_bytes))
-            
-            # Convert to OpenCV format
             np_array = np.frombuffer(file_bytes, np.uint8)
             opencv_image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
             
@@ -119,7 +128,6 @@ async def main():
                 st.error("נכשל בפענוח התמונה עם OpenCV. ייתכן שהקובץ פגום או בפורמט שאינו נתמך.")
                 return
             
-            # Placeholder for caption
             caption_placeholder = st.empty()
 
             with st.spinner('מתאר את תוכן התמונה...'):
@@ -128,68 +136,75 @@ async def main():
                 hebrew_captioning = translate_to_hebrew(english_captioning)
                 caption_placeholder.success(hebrew_captioning)
 
-            # Placeholder for images
             col1, col2 = st.columns(2)
             with col1:
-                original_image_placeholder = st.empty()
+                image_resized = resize_image(image)
+                st.image(image_resized, caption="התמונה המקורית", use_column_width=True)
+            
             with col2:
-                sketch_image_placeholder = st.empty()
+                sketch = ImageToSketchProcessor.convert_to_sketch(opencv_image)
+                sketch_image = Image.fromarray(sketch)
+                sketch_resized = resize_image(sketch_image)
+                st.image(sketch_resized, caption="הסקיצה", use_column_width=True)
             
-            # Resize and display original image            
-            image_resized = resize_image(image)
-            original_image_placeholder.image(image_resized, caption="התמונה המקורית", use_column_width=True)
-            
-            # Convert to sketch
-            sketch = ImageToSketchProcessor.convert_to_sketch(opencv_image)
-            sketch_image = Image.fromarray(sketch)
-            sketch_resized = resize_image(sketch_image)
-            sketch_image_placeholder.image(sketch_resized, caption="הסקיצה", use_column_width=True)
-            
-            # Placeholder for VIDEO
-            video_placeholder = st.empty()
-            
-            # Create the transition animation mp4 file
-            with st.spinner('מייצר אנימציה...'):
-                animator = ImageTransitionAnimator(sketch_image=sketch_resized, color_image=image_resized)
-                frames = animator.create_transition_frames()
-                video_base64 = animator.create_video_in_memory(frames)
-        
-            with st.spinner('מחבר את הכיתוב לתמונה...'):
-                uploader = ImgurUploader()                
-                video_url = uploader.upload_media_to_imgur(video_base64, "video", english_captioning, hebrew_captioning)                
-            
-            with st.spinner('יוצר את הוידאו זה ייקח כ 2 שניות...'):
-                print(video_url)
+             # שליחת ההודעה לטלגרם רק אם עוד לא נשלחה
+            if not st.session_state.telegram_message_sent:
+                await send_telegram_message_and_file(hebrew_captioning, image, sketch_image)
+                st.session_state.telegram_message_sent = True
 
-                load_video(video_url, video_placeholder)
-        
-            # Add download button for sketch
+            # Add download buttons
             buffered = io.BytesIO()
             sketch_image.save(buffered, format="PNG")
-            # Generate a unique image name
             unique_filename = f"sketch_{uuid.uuid4().hex}.png"
-
-            # Convert image to base64 string
             buffered.seek(0)
             image_base64 = base64.b64encode(buffered.getvalue()).decode()
             
-            # Update the st.markdown with the corrected href
-            # Update the st.markdown with custom CSS to center the download link on the image
             st.markdown(f"""
              <div class="gallery-container">
                 <div class="image-container">
                     <a href="data:image/png;base64,{image_base64}" download="{unique_filename}" class="centered-link">
                         הורדת סקיצה
-                    </a>&nbsp;
-                    <a href="data:video/mp4;base64,{video_base64}" download="{video_url}" class="centered-link">
-                        הורדת וידאו
                     </a>
                 </div>                
             </div>
-        """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
+
+            # שלב 2: בחירת סוג האנימציה
+            style_options = ["Smooth Transition", "MP4 Transition", "3D Rotation"]
             
-            # Send message to Telegram       
-            await send_telegram_message_and_file(hebrew_captioning, image, sketch_image, video_base64)
+            selected_animations = st.multiselect(
+                f"ליצירת אנימציה בחרו 👇",
+                    style_options,
+                    placeholder=f"ליצירת אנימציה בחרו את סוג האנימציה שאתם רוצים 👈",
+                    default=style_options[0]
+                )
+
+            if st.button("יצירת אנימציה", use_container_width=True):
+                for animation_type in selected_animations:
+                    if animation_type == "3D Rotation":
+                        with st.spinner('יוצר תמונת אפקט סיבוב תלת מימד...'):
+                            image_effects = ImageEffects(sketch_resized, image_resized)
+                            gif_data = image_effects.rotation_3d()
+                            st.markdown(f'<img src="data:image/gif;base64,{gif_data}" alt="3D Rotation effect" width="100%">', unsafe_allow_html=True)
+                    
+                    elif animation_type == "Smooth Transition":
+                        with st.spinner('יוצר תמונת מעבר חלק...'):
+                            image_effects = ImageEffects(sketch_resized, image_resized)
+                            gif_data = image_effects.smooth_transition()
+                            st.markdown(f'<img src="data:image/gif;base64,{gif_data}" alt="Smooth Transition effect" width="100%">', unsafe_allow_html=True)
+                    
+                    elif animation_type == "MP4 Transition":
+                        with st.spinner('יוצר וידאו של מעבר חלק בין התמונות...'):
+                            animator = ImageTransitionAnimator(sketch_image=sketch_resized, color_image=image_resized)
+                            frames = animator.create_transition_frames()
+                            video_base64 = animator.create_video_in_memory(frames)
+                            uploader = ImgurUploader()                
+                            video_url = uploader.upload_media_to_imgur(video_base64, "video", english_captioning, hebrew_captioning)
+                            st.empty()  # Clear the placeholder
+                            time.sleep(3)  # Small delay to ensure the placeholder is cleared
+                            st.video(video_url, autoplay=True, loop=True)
+                            
+                    st.markdown(f"<p style='text-align: center; color: gray;'>{animation_type}</p>", unsafe_allow_html=True)
                   
         except Exception as e:
             st.error(f"אירעה שגיאה בעיבוד התמונה: {str(e)}")
