@@ -97,7 +97,7 @@ async def main():
     expander_html = load_html_file('expander.html')
     st.markdown(expander_html, unsafe_allow_html=True)  
     
-    uploaded_file = st.file_uploader("בחרו תמונה...", type=["jpg", "jpeg", "png"])    
+    uploaded_file = st.file_uploader("בחרו תמונה...", type=["jpg", "jpeg", "png", "webp"])    
     
     if uploaded_file is not None:
         try:
