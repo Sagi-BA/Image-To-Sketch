@@ -104,7 +104,7 @@ async def main():
     if 'last_uploaded_file' not in st.session_state:
         st.session_state.last_uploaded_file = None
 
-    uploaded_file = st.file_uploader("בחרו תמונה...", type=["jpg", "jpeg", "png", "webp"])    
+    uploaded_file = st.file_uploader("בחרו תמונה...", type=["jpg", "jpeg", "png", "webp", ".jfif"])    
     
     # Reset telegram_message_sent if a new file is uploaded
     if uploaded_file is not None and uploaded_file != st.session_state.last_uploaded_file:
@@ -203,7 +203,7 @@ async def main():
                             st.empty()  # Clear the placeholder
                             time.sleep(3)  # Small delay to ensure the placeholder is cleared
                             st.video(video_url, autoplay=True, loop=True)
-                            
+
                     st.markdown(f"<p style='text-align: center; color: gray;'>{animation_type}</p>", unsafe_allow_html=True)
                   
         except Exception as e:
