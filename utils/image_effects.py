@@ -13,22 +13,10 @@ class ImageEffects:
         self.sketch = self.sketch.resize(self.size)
         self.color = self.color.resize(self.size)
 
-<<<<<<< Tabnine <<<<<<<
     def _create_gif(self, frames, fps=30):
-        """#+
-        Create a GIF animation from a list of frames.#+
-#+
-        Parameters:#+
-        - frames (list): A list of numpy arrays representing each frame of the animation.#+
-        - fps (int, optional): The frames per second of the animation. Defaults to 30.#+
-#+
-        Returns:#+
-        - str: A base64-encoded string representing the GIF animation.#+
-        """#+
         output = BytesIO()
         imageio.mimsave(output, frames, format='GIF', fps=fps, loop=0)
         return base64.b64encode(output.getvalue()).decode('utf-8')
->>>>>>> Tabnine >>>>>>># {"conversationId":"456dc361-05c9-4f97-9e4f-3679503e8607","source":"instruct"}
 
     def smooth_transition(self, num_frames=150):
         frames = []
