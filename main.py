@@ -186,12 +186,29 @@ async def main():
                             image_effects = ImageEffects(sketch_resized, image_resized)
                             gif_data = image_effects.rotation_3d()
                             st.markdown(f'<img src="data:image/gif;base64,{gif_data}" alt="3D Rotation effect" width="100%">', unsafe_allow_html=True)
+
+                            # Add download button for 3D Rotation
+                            rotation_filename = f"3d_rotation_{uuid.uuid4().hex}.gif"
+                                                
+                            st.markdown(f"""
+                            <a href="data:image/gif;base64,{gif_data}" download="{rotation_filename}" class="centered-link">
+                                הורדת אנימציית סיבוב תלת מימד
+                            </a>
+                            """, unsafe_allow_html=True)
                     
                     elif animation_type == "Smooth Transition":
                         with st.spinner('יוצר תמונת מעבר חלק...'):
                             image_effects = ImageEffects(sketch_resized, image_resized)
                             gif_data = image_effects.smooth_transition()
                             st.markdown(f'<img src="data:image/gif;base64,{gif_data}" alt="Smooth Transition effect" width="100%">', unsafe_allow_html=True)
+
+                            # Add download button for Smooth Transition
+                            transition_filename = f"smooth_transition_{uuid.uuid4().hex}.gif"
+                            st.markdown(f"""
+                            <a href="data:image/gif;base64,{gif_data}" download="{transition_filename}" class="centered-link">
+                                הורדת אנימציית מעבר חלק
+                            </a>
+                            """, unsafe_allow_html=True)
                     
                     elif animation_type == "MP4 Transition":
                         with st.spinner('יוצר וידאו של מעבר חלק בין התמונות...'):
@@ -203,6 +220,14 @@ async def main():
                             st.empty()  # Clear the placeholder
                             time.sleep(3)  # Small delay to ensure the placeholder is cleared
                             st.video(video_url, autoplay=True, loop=True)
+
+                            # Add download button for MP4 Transition
+                            mp4_filename = f"mp4_transition_{uuid.uuid4().hex}.mp4"
+                            st.markdown(f"""
+                            <a href="data:video/mp4;base64,{video_base64}" download="{mp4_filename}" class="centered-link">
+                                הורדת וידאו מעבר
+                            </a>
+                            """, unsafe_allow_html=True)
 
                     st.markdown(f"<p style='text-align: center; color: gray;'>{animation_type}</p>", unsafe_allow_html=True)
                   
