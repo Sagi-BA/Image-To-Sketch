@@ -19,7 +19,7 @@ def display_image_slideshow(folder_path="examples"):
         st.warning("No images found in the specified folder.")
         return
 
-    # HTML for the TikTok-style slideshow
+    # HTML for the responsive full-image slideshow
     slideshow_html = f"""
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
     <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
@@ -30,13 +30,18 @@ def display_image_slideshow(folder_path="examples"):
         background-color: #000;
     }}
     .swiper-slide {{
+        display: flex;
+        justify-content: center;
+        align-items: center;
         overflow: hidden;
         position: relative;
     }}
     .swiper-slide img {{
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
+        max-width: 100%;
+        max-height: 100%;
+        width: auto;
+        height: auto;
+        object-fit: contain;
     }}
     .image-caption {{
         position: absolute;
@@ -45,6 +50,9 @@ def display_image_slideshow(folder_path="examples"):
         color: white;
         font-size: 18px;
         text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        background-color: rgba(0,0,0,0.5);
+        padding: 5px 10px;
+        border-radius: 5px;
     }}
     .swiper-pagination-bullet {{
         width: 10px;
@@ -63,6 +71,15 @@ def display_image_slideshow(folder_path="examples"):
     .swiper-button-next:hover, .swiper-button-prev:hover {{
         opacity: 1;
     }}
+    @media (max-width: 768px) {{
+        .swiper-container {{
+            height: 100vh;
+        }}
+        .image-caption {{
+            font-size: 14px;
+            bottom: 60px;
+        }}
+    }}
     </style>
     <div class="swiper-container">
         <div class="swiper-wrapper">
@@ -74,7 +91,6 @@ def display_image_slideshow(folder_path="examples"):
     </div>
     <script>
     var swiper = new Swiper('.swiper-container', {{
-        direction: 'vertical',
         loop: true,
         autoplay: {{
             delay: 3000,
