@@ -19,6 +19,7 @@ from utils.init import initialize
 from utils.counter import initialize_user_count, increment_user_count, get_user_count
 from utils.TelegramSender import TelegramSender
 from utils.image_effects import ImageEffects
+from utils.html5_slideshow_component import display_image_slideshow  # Updated import
 
 # Initialize session state
 if 'state' not in st.session_state:
@@ -106,6 +107,10 @@ async def main():
 
     uploaded_file = st.file_uploader("בחרו תמונה...", type=["jpg", "jpeg", "png", "webp", ".jfif"])    
     
+    # Add the Image Carousel component
+    st.subheader("גלריית דוגמאות")
+    display_image_slideshow()  # Display the image slideshow
+
     # Reset telegram_message_sent if a new file is uploaded
     if uploaded_file is not None and uploaded_file != st.session_state.last_uploaded_file:
         st.session_state.telegram_message_sent = False
