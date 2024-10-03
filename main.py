@@ -19,7 +19,7 @@ from utils.init import initialize
 from utils.counter import initialize_user_count, increment_user_count, get_user_count
 from utils.TelegramSender import TelegramSender
 from utils.image_effects import ImageEffects
-from utils.html5_slideshow_component import display_image_slideshow  # Updated import
+from utils.html5_slideshow_component import display_image_slideshow
 
 # Initialize session state
 if 'state' not in st.session_state:
@@ -29,7 +29,6 @@ if 'state' not in st.session_state:
     }
 
 # Set page config for better mobile responsiveness
-# Set page config at the very beginning
 st.set_page_config(layout="wide", initial_sidebar_state="collapsed", page_title="המרה של תמונות לסקיצות אמנותיות", page_icon="🖼️")
 
 def image_to_bytes(image: Image.Image) -> io.BytesIO:
@@ -105,8 +104,25 @@ async def main():
     if 'last_uploaded_file' not in st.session_state:
         st.session_state.last_uploaded_file = None
 
-    uploaded_file = st.file_uploader("העלו תמונה...", type=["jpg", "jpeg", "png", "webp", ".jfif"])    
-    
+    # Custom file uploader HTML (Hugging Face style)
+    custom_uploader_html = """
+    <div class="upload-container" id="drop-zone">
+        <div class="upload-icon">⬆️</div>
+        <div class="upload-text">העלאת תמונה</div>
+        <div class="upload-text">גרור ושחרר קובץ כאן</div>
+        <div class="upload-text">- או -</div>
+        <button class="upload-button" onclick="document.getElementById('file-upload').click()">בחר מתוך מחשב</button>
+        <div id="file-chosen"></div>
+    </div>
+    """
+
+    # Display custom file uploader
+    # st.markdown(custom_uploader_html, unsafe_allow_html=True)
+
+
+    # Hidden Streamlit file uploader (will be triggered by custom uploader)
+    uploaded_file = st.file_uploader(label="העלו תמונה...", type=["jpg", "jpeg", "png", "webp", ".jfif"], key="hidden_uploader")
+
     # Add the Image Carousel component
     st.subheader("גלריית דוגמאות")
     display_image_slideshow()  # Display the image slideshow
@@ -152,7 +168,7 @@ async def main():
                 sketch_resized = resize_image(sketch_image)
                 st.image(sketch_resized, caption="הסקיצה", use_column_width=True)
             
-             # שליחת ההודעה לטלגרם רק אם עוד לא נשלחה
+            # שליחת ההודעה לטלגרם רק אם עוד לא נשלחה
             if not st.session_state.telegram_message_sent:
                 await send_telegram_message_and_file(hebrew_captioning, image, sketch_image)
                 st.session_state.telegram_message_sent = True

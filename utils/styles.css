@@ -133,6 +133,52 @@ img {
   width: 100%;
   text-align: center;
 }
+.upload-container {
+  border: 2px dashed #ccc;
+  border-radius: 5px;
+  padding: 20px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+.upload-icon {
+  font-size: 48px;
+  color: #1e90ff;
+  margin-bottom: 10px;
+}
+.upload-text {
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 10px;
+}
+.upload-button {
+  background-color: #f0f0f0;
+  border: none;
+  padding: 10px 20px;
+  margin: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+#file-chosen {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #666;
+}
+/* 
+[data-testid="stFileUploader"] {
+  width: max-content;
+}
+[data-testid="stFileUploader"] section {
+  padding: 0;
+  float: left;
+}
+[data-testid="stFileUploader"] section > input + div {
+  display: none;
+}
+[data-testid="stFileUploader"] section + div {
+  float: right;
+  padding-top: 0;
+} */
 
 @media (max-width: 768px) {
   .centered-link {
