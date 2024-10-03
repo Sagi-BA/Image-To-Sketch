@@ -105,7 +105,7 @@ async def main():
     if 'last_uploaded_file' not in st.session_state:
         st.session_state.last_uploaded_file = None
 
-    uploaded_file = st.file_uploader("בחרו תמונה...", type=["jpg", "jpeg", "png", "webp", ".jfif"])    
+    uploaded_file = st.file_uploader("העלו תמונה...", type=["jpg", "jpeg", "png", "webp", ".jfif"])    
     
     # Add the Image Carousel component
     st.subheader("גלריית דוגמאות")

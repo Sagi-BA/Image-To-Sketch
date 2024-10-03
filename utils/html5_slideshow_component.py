@@ -19,7 +19,7 @@ def display_image_slideshow(folder_path="examples"):
         st.warning("No images found in the specified folder.")
         return
 
-    # HTML for the responsive full-image slideshow
+    # HTML for the responsive full-image slideshow with transparent background
     slideshow_html = f"""
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
     <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
@@ -27,7 +27,8 @@ def display_image_slideshow(folder_path="examples"):
     .swiper-container {{
         width: 100%;
         height: 80vh;
-        background-color: #000;
+        background-color: transparent;
+        padding: 20px;
     }}
     .swiper-slide {{
         display: flex;
@@ -37,34 +38,38 @@ def display_image_slideshow(folder_path="examples"):
         position: relative;
     }}
     .swiper-slide img {{
-        max-width: 100%;
-        max-height: 100%;
+        max-width: 95%;
+        max-height: 95%;
         width: auto;
         height: auto;
         object-fit: contain;
+        border-radius: 15px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     }}
     .image-caption {{
         position: absolute;
-        bottom: 20px;
-        left: 20px;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
         color: white;
         font-size: 18px;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
         background-color: rgba(0,0,0,0.5);
         padding: 5px 10px;
         border-radius: 5px;
+        white-space: nowrap;
     }}
     .swiper-pagination-bullet {{
         width: 10px;
         height: 10px;
-        background-color: #fff;
-        opacity: 0.5;
+        background-color: #000;
+        opacity: 0.7;
     }}
     .swiper-pagination-bullet-active {{
         opacity: 1;
     }}
     .swiper-button-next, .swiper-button-prev {{
-        color: #fff;
+        color: #000;
         opacity: 0.7;
         transition: opacity 0.3s;
     }}
@@ -74,10 +79,11 @@ def display_image_slideshow(folder_path="examples"):
     @media (max-width: 768px) {{
         .swiper-container {{
             height: 100vh;
+            padding: 10px;
         }}
         .image-caption {{
             font-size: 14px;
-            bottom: 60px;
+            bottom: 40px;
         }}
     }}
     </style>
