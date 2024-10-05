@@ -15,14 +15,13 @@
 }
 
 body {
-  font-family: "Exo 2", sans-serif;
   direction: rtl;
 }
 
 h1 {
   font-size: 56px; /* Restore the original large size for the title */
   color: var(--text-color); /* Keep the original accent color */
-  text-shadow: 0 0 10px var(--glow-color); /* Keep the glow effect */
+
   text-align: center; /* Ensure it's centered on all screen sizes */
   margin-top: 20px; /* Add a bit of space from the top */
 }
@@ -32,9 +31,7 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: "Orbitron", sans-serif;
   color: var(--accent-color);
-  text-shadow: 0 0 10px var(--glow-color);
 }
 
 p {

@@ -19,6 +19,7 @@ def display_image_slideshow(folder_path="examples"):
         st.warning("No images found in the specified folder.")
         return
 
+    
     # HTML for the responsive full-image slideshow with transparent background
     slideshow_html = f"""
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
@@ -117,5 +118,5 @@ def display_image_slideshow(folder_path="examples"):
     }});
     </script>
     """
-    
-    st.components.v1.html(slideshow_html, height=600)
+    with st.container(border=1):
+        st.components.v1.html(slideshow_html, height=600)
