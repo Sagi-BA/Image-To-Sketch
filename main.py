@@ -256,7 +256,10 @@ async def main():
                     style_options,
                     placeholder=f"ליצירת אנימציה בחרו את סוג האנימציה שאתם רוצים 👈",
                     default=style_options[0]
-                )            
+                )  
+
+            st.balloons()
+            st.toast('ההמרה הושלמה! איך זה נראה', icon='🎉')
                   
         except Exception as e:
             st.error(f"אירעה שגיאה בעיבוד התמונה: {str(e)}")
@@ -313,6 +316,8 @@ async def main():
                     """, unsafe_allow_html=True)
 
             st.markdown(f"<p style='text-align: center; color: gray;'>{animation_type}</p>", unsafe_allow_html=True)
+            st.balloons()
+            st.toast('ההמרה הושלמה! איך זה נראה', icon='🎉')
     
     # Display footer content
     st.markdown(footer_content, unsafe_allow_html=True)    
