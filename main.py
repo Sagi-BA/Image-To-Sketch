@@ -141,12 +141,13 @@ def add_animegan(image):
 
     models = ['Hayao_64', 'Hayao-60', 'Paprika_54', 'Shinkai_53']
 
-    with st.container(border=1):
-        for model in models:
-            with st.spinner(f"Processing with {model}..."):
-                result_image = process_image(image, model, use_cpu)
-                if result_image is not None:
-                    st.subheader(f"Result for {model}")            
+
+    for model in models:
+        with st.spinner(f"Processing with {model}..."):
+            result_image = process_image(image, model, use_cpu)
+            if result_image is not None:
+                # st.subheader(f"Result for {model}")            
+                with st.container(border=1):
                     st.image(result_image, caption=f'Processed with {model}', use_column_width=True)
         
         
