@@ -9,3 +9,10 @@ opencv-python-headless
 deep_translator #this is for GoogleTranslator
 moviepy #for the animation images
 imageio #for the animation images
+opencv-python
+mediapipe
+stow
+tqdm
+onnxruntime
+tf2onnx
+tensorflow
