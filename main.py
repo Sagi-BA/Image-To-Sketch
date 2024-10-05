@@ -34,6 +34,12 @@ if 'state' not in st.session_state:
 # Set page config for better mobile responsiveness
 st.set_page_config(layout="wide", initial_sidebar_state="collapsed", page_title="המרה של תמונות לסקיצות אמנותיות", page_icon="🖼️")
 
+def resize_image(image, max_width=800):
+    """Resize image to fit within max_width while maintaining aspect ratio"""
+    w_percent = max_width / float(image.size[0])
+    h_size = int(float(image.size[1]) * float(w_percent))
+    return image.resize((max_width, h_size), Image.LANCZOS)
+
 def reduce_image_resolution(image, scale_factor=0.5):
     width, height = image.size
     new_width = int(width * scale_factor)
@@ -80,11 +86,6 @@ def load_footer():
             return footer_file.read()
     return None  # Return None if the file doesn't exist
 
-def resize_image(image, max_width=800):
-    """Resize image to fit within max_width while maintaining aspect ratio"""
-    w_percent = max_width / float(image.size[0])
-    h_size = int(float(image.size[1]) * float(w_percent))
-    return image.resize((max_width, h_size), Image.LANCZOS)
 
 @st.cache_resource
 def translate_to_hebrew(text):
@@ -103,8 +104,9 @@ def load_video(video_url, placeholder):
 
 def process_image(image, model_name, use_cpu=False):
     if use_cpu:
-        image = reduce_image_resolution(image)
-        st.info("Image resolution reduced for CPU processing.")
+        image = resize_image(image, 600)
+        # image = reduce_image_resolution(image).resize_image(image, 300)
+        # st.info("Image resolution reduced for CPU processing.")
     
     # Convert PIL Image to numpy array (RGB)
     img_array = np.array(image)
@@ -152,45 +154,33 @@ async def main():
     title, image_path, footer_content = initialize()
     st.title("המרת תמונות לסקיצות אמנותיות")
 
-    # Load and display the custom expander HTML
+   # Load and display the custom expander HTML
     expander_html = load_html_file('expander.html')
     st.markdown(expander_html, unsafe_allow_html=True)  
     
-    # Initialize session state for tracking Telegram message sent
+    # Initialize session state variables
     if 'telegram_message_sent' not in st.session_state:
         st.session_state.telegram_message_sent = False
     
     if 'last_uploaded_file' not in st.session_state:
         st.session_state.last_uploaded_file = None
+    
+    if 'animegan_images_rendered' not in st.session_state:
+        st.session_state.animegan_images_rendered = False
 
-    # Custom file uploader HTML (Hugging Face style)
-    custom_uploader_html = """
-    <div class="upload-container" id="drop-zone">
-        <div class="upload-icon">⬆️</div>
-        <div class="upload-text">העלאת תמונה</div>
-        <div class="upload-text">גרור ושחרר קובץ כאן</div>
-        <div class="upload-text">- או -</div>
-        <button class="upload-button" onclick="document.getElementById('file-upload').click()">בחר מתוך מחשב</button>
-        <div id="file-chosen"></div>
-    </div>
-    """
-
-    # Display custom file uploader
-    # st.markdown(custom_uploader_html, unsafe_allow_html=True)
-
-    # Hidden Streamlit file uploader (will be triggered by custom uploader)
     uploaded_file = st.file_uploader("העלו תמונה...", type=["jpg", "jpeg", "png", "webp", ".jfif"], key="hidden_uploader")
 
-    # Reset telegram_message_sent if a new file is uploaded
+    # Reset states if a new file is uploaded
     if uploaded_file is not None and uploaded_file != st.session_state.last_uploaded_file:
         st.session_state.telegram_message_sent = False
         st.session_state.last_uploaded_file = uploaded_file
+        st.session_state.animegan_images_rendered = False
     else:
         st.warning('☝️ העלו תמונה')   
 
     # Add the Image Carousel component
     st.subheader("גלריית דוגמאות")
-    display_image_slideshow()  # Display the image slideshow
+    display_image_slideshow()
 
     if uploaded_file is not None:
         try:
@@ -252,8 +242,10 @@ async def main():
             </div>
             """, unsafe_allow_html=True)
 
-            #add the other images                        
-            add_animegan(image)            
+            # Render AnimeGAN images only if they haven't been rendered yet
+            if not st.session_state.animegan_images_rendered:
+                add_animegan(image)
+                st.session_state.animegan_images_rendered = True
 
             # שלב 2: בחירת סוג האנימציה            
             style_options = ["Smooth Transition", "MP4 Transition", "3D Rotation"]
